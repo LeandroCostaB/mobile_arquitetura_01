@@ -6,19 +6,31 @@ import '../models/product_model.dart';
 
 class ProductRepositoryImpl implements IProductRepository {
   final http.Client client;
+  
+  static List<Product> _cache = []; 
 
-  // Se não passarmos um client, ele usa o padrão do pacote http
   ProductRepositoryImpl({http.Client? client}) : client = client ?? http.Client();
 
   @override
   Future<List<Product>> getProducts() async {
-    final response = await client.get(Uri.parse('https://fakestoreapi.com/products'));
+    try {
+      final response = await client.get(Uri.parse('https://fakestoreapi.com/products'));
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((item) => ProductModel.fromJson(item)).toList();
-    } else {
-      throw Exception('Erro ao carregar produtos');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        final products = data.map((item) => ProductModel.fromJson(item)).toList();
+        
+        _cache = products; 
+        return products;
+      } else {
+        throw Exception();
+      }
+    } catch (e) {
+      
+      if (_cache.isNotEmpty) {
+        return _cache;
+      }
+      throw Exception('Falha na rede e sem cache disponível.');
     }
   }
 }

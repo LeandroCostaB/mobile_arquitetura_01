@@ -6,5 +6,10 @@ import 'presentation/viewmodels/product_viewmodel.dart';
 void main() {
   final repository = ProductRepositoryImpl();
   final viewModel = ProductViewModel(repository);
-  runApp(MaterialApp(home: ProductListPage(viewModel: viewModel)));
+  
+  runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
+    theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
+    home: ProductListPage(viewModel: viewModel),
+  ));
 }

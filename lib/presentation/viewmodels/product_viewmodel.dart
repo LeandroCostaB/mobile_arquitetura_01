@@ -1,22 +1,32 @@
 import 'package:flutter/material.dart';
-import '../../domain/entities/product.dart';
 import '../../domain/repositories/i_product_repository.dart';
+import 'product_state.dart';
 
 class ProductViewModel extends ChangeNotifier {
   final IProductRepository repository;
-  List<Product> products = [];
-  bool isLoading = false;
+
+  ProductState state = const ProductState();
 
   ProductViewModel(this.repository);
 
   Future<void> fetchProducts() async {
-    isLoading = true;
+    state = state.copyWith(isLoading: true, error: null);
     notifyListeners();
+
     try {
-      products = await repository.getProducts();
-    } finally {
-      isLoading = false;
-      notifyListeners();
+      final products = await repository.getProducts();
+
+      state = state.copyWith(
+        isLoading: false,
+        products: products,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
     }
+
+    notifyListeners();
   }
 }
