@@ -1,32 +1,23 @@
-import 'package:flutter/material.dart';
-import '../../domain/repositories/i_product_repository.dart';
+import 'package:flutter/foundation.dart';
+import '../../domain/repositories/product_repository.dart';
 import 'product_state.dart';
 
-class ProductViewModel extends ChangeNotifier {
-  final IProductRepository repository;
-
-  ProductState state = const ProductState();
+class ProductViewModel {
+  final ProductRepository repository;
+  final ValueNotifier<ProductState> state = ValueNotifier(const ProductState());
 
   ProductViewModel(this.repository);
 
-  Future<void> fetchProducts() async {
-    state = state.copyWith(isLoading: true, error: null);
-    notifyListeners();
-
+  Future<void> loadProducts() async {
+    state.value = state.value.copyWith(
+      isLoading: true,
+      error: null,
+    ); // Reseta o erro ao recarregar
     try {
       final products = await repository.getProducts();
-
-      state = state.copyWith(
-        isLoading: false,
-        products: products,
-      );
+      state.value = state.value.copyWith(isLoading: false, products: products);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state.value = state.value.copyWith(isLoading: false, error: e.toString());
     }
-
-    notifyListeners();
   }
 }

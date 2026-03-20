@@ -1,36 +1,45 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../../core/errors/failure.dart';
 import '../../domain/entities/product.dart';
-import '../../domain/repositories/i_product_repository.dart';
-import '../models/product_model.dart';
+import '../../domain/repositories/product_repository.dart';
+import '../datasources/product_cache_datasource.dart';
+import '../datasources/product_remote_datasource.dart';
 
-class ProductRepositoryImpl implements IProductRepository {
-  final http.Client client;
-  
-  static List<Product> _cache = []; 
+class ProductRepositoryImpl implements ProductRepository {
+  final ProductRemoteDatasource remote;
+  final ProductCacheDatasource cache;
 
-  ProductRepositoryImpl({http.Client? client}) : client = client ?? http.Client();
+  ProductRepositoryImpl(this.remote, this.cache);
 
   @override
   Future<List<Product>> getProducts() async {
     try {
-      final response = await client.get(Uri.parse('https://fakestoreapi.com/products'));
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        final products = data.map((item) => ProductModel.fromJson(item)).toList();
-        
-        _cache = products; 
-        return products;
-      } else {
-        throw Exception();
-      }
+      final models = await remote.getProducts();
+      cache.save(models);
+      return models
+          .map(
+            (m) => Product(
+              id: m.id,
+              title: m.title,
+              price: m.price,
+              image: m.image,
+            ),
+          )
+          .toList();
     } catch (e) {
-      
-      if (_cache.isNotEmpty) {
-        return _cache;
+      final cached = cache.get();
+      if (cached != null) {
+        return cached
+            .map(
+              (m) => Product(
+                id: m.id,
+                title: m.title,
+                price: m.price,
+                image: m.image,
+              ),
+            )
+            .toList();
       }
-      throw Exception('Falha na rede e sem cache disponível.');
+      throw Failure("Não foi possível carregar os produtos");
     }
   }
 }
