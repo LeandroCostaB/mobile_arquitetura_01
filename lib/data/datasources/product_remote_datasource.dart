@@ -1,16 +1,39 @@
-import '../../core/network/http_client.dart';
-import '../models/product_model.dart';
+
+import 'package:dio/dio.dart';
+import 'package:product_app/data/models/product_model.dart';
 
 class ProductRemoteDatasource {
-  final HttpClient client;
+  final Dio client;
+  
+  ProductRemoteDatasource ( this .client );
+  
+  Future<List<ProductModel>> getProducts () async {
+    final response = await client.get("https://fakestoreapi.com/products");
+  
+    final List data = response.data;
+  
+    return data
+      .map((json) => ProductModel.fromJson(json))
+      .toList();
+  }
 
-  ProductRemoteDatasource(this.client);
-
-  Future<List<ProductModel>> getProducts() async {
-    final response = await client.get(
-      'https://fakestoreapi.com/products',
+  Future<ProductModel> addProduct(ProductModel product) async {
+    final response = await client.post(
+      "https://fakestoreapi.com/products",
+      data: product.toJson(),
     );
-    final List<dynamic> data = response.data as List<dynamic>;
-    return data.map((json) => ProductModel.fromJson(json as Map<String, dynamic>)).toList();
+    return ProductModel.fromJson(response.data);
+  }
+
+  Future<ProductModel> updateProduct(ProductModel product) async {
+    final response = await client.put(
+      "https://fakestoreapi.com/products/${product.id}",
+      data: product.toJson(),
+    );
+    return ProductModel.fromJson(response.data);
+  }
+
+  Future<void> deleteProduct(int id) async {
+    await client.delete("https://fakestoreapi.com/products/$id");
   }
 }

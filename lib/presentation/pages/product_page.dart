@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../viewmodels/product_state.dart';
-import '../viewmodels/product_viewmodel.dart';
+import 'package:product_app/presentation/pages/product_detail_page.dart';
+import 'package:product_app/presentation/pages/product_form_page.dart';
+import 'package:provider/provider.dart';
+import 'package:product_app/presentation/viewmodel/product_viewmodel.dart';
 
 class ProductPage extends StatefulWidget {
-  final ProductViewModel viewModel;
-
-  const ProductPage({super.key, required this.viewModel});
+  const ProductPage({super.key});
 
   @override
   State<ProductPage> createState() => _ProductPageState();
@@ -15,49 +15,71 @@ class _ProductPageState extends State<ProductPage> {
   @override
   void initState() {
     super.initState();
-    widget.viewModel.loadProducts();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProductViewModel>().loadProducts();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<ProductViewModel>();
+    final state = viewModel.state;
+
+    // Listen for error changes and show SnackBar
+    if (state.error != null && state.products.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(state.error!)),
+        );
+      });
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Products - Atividade 2")),
-      body: ValueListenableBuilder<ProductState>(
-        valueListenable: widget.viewModel.state,
-        builder: (context, state, _) {
-          // 1. Estado: Carregando
+      appBar: AppBar(
+        title: const Text("Products"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProductFormPage(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      body: Builder(
+        builder: (context) {
           if (state.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
           }
 
-          // 2. Estado: Erro
           if (state.error != null) {
             return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline, color: Colors.red, size: 48),
-                    const SizedBox(height: 16),
-                    Text(state.error!, textAlign: TextAlign.center),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: widget.viewModel.loadProducts,
-                      child: const Text('Tentar Novamente'),
-                    )
-                  ],
-                ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(state.error!),
+                  ElevatedButton(
+                    onPressed: viewModel.loadProducts,
+                    child: const Text("Retry"),
+                  ),
+                ],
               ),
             );
           }
 
-          // 3. Estado: Sucesso (Lista Vazia)
           if (state.products.isEmpty) {
-            return const Center(child: Text("Nenhum produto encontrado."));
+            return const Center(
+              child: Text("No products loaded."),
+            );
           }
 
-          // 3. Estado: Sucesso (Dados Carregados)
           return ListView.builder(
             itemCount: state.products.length,
             itemBuilder: (context, index) {
@@ -68,17 +90,60 @@ class _ProductPageState extends State<ProductPage> {
                   width: 50,
                   height: 50,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.image_not_supported),
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.error),
                 ),
                 title: Text(product.title),
-                subtitle: Text("\$${product.price}"),
+                subtitle: Text("\$${product.price.toStringAsFixed(2)}"),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ProductDetailPage(product: product),
+                    ),
+                  );
+                },
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        product.isFavorite
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        color: product.isFavorite ? Colors.red : null,
+                      ),
+                      onPressed: () {
+                        viewModel.toggleFavorite(product.id);
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ProductFormPage(product: product),
+                          ),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () {
+                        viewModel.deleteProduct(product.id);
+                      },
+                    ),
+                  ],
+                ),
               );
             },
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: widget.viewModel.loadProducts,
+        onPressed: viewModel.loadProducts,
         child: const Icon(Icons.refresh),
       ),
     );

@@ -100,4 +100,4 @@ Refatoração da Lógica: Converter um exemplo simples de contador para uma estr
 
 Sincronização da UI: Garantir que a ação de "favoritar" em uma tela fosse refletida instantaneamente em outras partes do app, o que exigiu atenção ao escopo do Provider.
 
-Organização de Arquivos: Estruturar corretamente as pastas entre Modelos, Providers e Views para manter o projeto limpo e escalável.
+Organização de Arquivos: Estruturar corretamente as pastas entre Mod
