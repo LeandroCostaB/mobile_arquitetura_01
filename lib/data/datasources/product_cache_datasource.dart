@@ -6,7 +6,7 @@ class ProductCacheDatasource {
   void save(List<ProductModel> products) {
     _cache = products;
   }
-  
+
   List<ProductModel>? get() {
     return _cache;
   }

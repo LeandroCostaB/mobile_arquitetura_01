@@ -5,21 +5,21 @@ class ProductState {
   final List<Product> products;
   final String? error;
 
-  const ProductState ({
+  const ProductState({
     this.isLoading = false,
     this.products = const [],
     this.error,
   });
 
   ProductState copyWith({
-    bool ? isLoading,
-    List <Product>? products,
-    String ? error,
+    bool? isLoading,
+    List<Product>? products,
+    String? error,
   }) {
-    return ProductState (
-      isLoading : isLoading ?? this.isLoading,
-      products : products ?? this.products,
-      error : error,
+    return ProductState(
+      isLoading: isLoading ?? this.isLoading,
+      products: products ?? this.products,
+      error: error,
     );
   }
 }

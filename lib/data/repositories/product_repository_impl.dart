@@ -11,75 +11,75 @@ class ProductRepositoryImpl implements ProductRepository {
 
   ProductRepositoryImpl(this.remote, this.cache);
 
+  Product _fromModel(ProductModel m, {bool isFavorite = false}) {
+    return Product(
+      id: m.id,
+      title: m.title,
+      description: m.description,
+      category: m.category,
+      price: m.price,
+      rating: m.rating,
+      stock: m.stock,
+      thumbnail: m.thumbnail,
+      isFavorite: isFavorite,
+    );
+  }
+
+  ProductModel _toModel(Product p) {
+    return ProductModel(
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      category: p.category,
+      price: p.price,
+      rating: p.rating,
+      stock: p.stock,
+      thumbnail: p.thumbnail,
+    );
+  }
+
   @override
   Future<List<Product>> getProducts() async {
     try {
       final models = await remote.getProducts();
       cache.save(models);
-      return models
-          .map((m) => Product(
-                id: m.id,
-                title: m.title,
-                price: m.price,
-                image: m.image,
-                isFavorite: false,
-              ))
-          .toList();
+      return models.map((m) => _fromModel(m)).toList();
     } catch (e) {
       final cached = cache.get();
       if (cached != null) {
-        return cached
-            .map((m) => Product(
-                  id: m.id,
-                  title: m.title,
-                  price: m.price,
-                  image: m.image,
-                ))
-            .toList();
+        return cached.map((m) => _fromModel(m)).toList();
       }
-      throw Failure("Não foi possível carregar os produtos");
+      throw Failure('Não foi possível carregar os produtos');
+    }
+  }
+
+  @override
+  Future<Product> getProductById(int id) async {
+    try {
+      final model = await remote.getProductById(id);
+      return _fromModel(model);
+    } catch (e) {
+      throw Failure('Não foi possível carregar o produto');
     }
   }
 
   @override
   Future<Product> addProduct(Product product) async {
     try {
-      final model = ProductModel(
-        id: product.id,
-        title: product.title,
-        price: product.price,
-        image: product.image,
-      );
-      final resultModel = await remote.addProduct(model);
-      return Product(
-        id: resultModel.id,
-        title: resultModel.title,
-        price: resultModel.price,
-        image: resultModel.image,
-      );
+      final resultModel = await remote.addProduct(_toModel(product));
+      return _fromModel(resultModel);
     } catch (e) {
-      throw Failure("Erro ao adicionar produto");
+      throw Failure('Erro ao adicionar produto');
     }
   }
 
   @override
   Future<Product> updateProduct(Product product) async {
     try {
-      final model = ProductModel(
-        id: product.id,
-        title: product.title,
-        price: product.price,
-        image: product.image,
-      );
-      final resultModel = await remote.updateProduct(model);
-      return Product(
-        id: resultModel.id,
-        title: resultModel.title,
-        price: resultModel.price,
-        image: resultModel.image,
-      );
+      final resultModel = await remote.updateProduct(_toModel(product));
+      return _fromModel(resultModel);
     } catch (e) {
-      throw Failure("Erro ao atualizar produto");
+      throw Failure('Erro ao atualizar produto');
     }
   }
 
@@ -88,7 +88,7 @@ class ProductRepositoryImpl implements ProductRepository {
     try {
       await remote.deleteProduct(id);
     } catch (e) {
-      throw Failure("Erro ao excluir produto");
+      throw Failure('Erro ao excluir produto');
     }
   }
 }

@@ -16,35 +16,52 @@ class _ProductFormPageState extends State<ProductFormPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late TextEditingController _priceController;
-  late TextEditingController _imageController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _categoryController;
+  late TextEditingController _thumbnailController;
+  late TextEditingController _stockController;
 
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.product?.title ?? "");
-    _priceController = TextEditingController(
-      text: widget.product?.price.toString() ?? "",
-    );
-    _imageController = TextEditingController(text: widget.product?.image ?? "");
+    _titleController =
+        TextEditingController(text: widget.product?.title ?? '');
+    _priceController =
+        TextEditingController(text: widget.product?.price.toString() ?? '');
+    _descriptionController =
+        TextEditingController(text: widget.product?.description ?? '');
+    _categoryController =
+        TextEditingController(text: widget.product?.category ?? '');
+    _thumbnailController =
+        TextEditingController(text: widget.product?.thumbnail ?? '');
+    _stockController =
+        TextEditingController(text: widget.product?.stock.toString() ?? '');
   }
 
   @override
   void dispose() {
     _titleController.dispose();
     _priceController.dispose();
-    _imageController.dispose();
+    _descriptionController.dispose();
+    _categoryController.dispose();
+    _thumbnailController.dispose();
+    _stockController.dispose();
     super.dispose();
   }
 
   void _save() {
     if (_formKey.currentState!.validate()) {
       final viewModel = context.read<ProductViewModel>();
-      
+
       final product = Product(
         id: widget.product?.id ?? 0,
         title: _titleController.text,
         price: double.tryParse(_priceController.text) ?? 0.0,
-        image: _imageController.text,
+        description: _descriptionController.text,
+        category: _categoryController.text,
+        thumbnail: _thumbnailController.text,
+        stock: int.tryParse(_stockController.text) ?? 0,
+        rating: widget.product?.rating ?? 0.0,
       );
 
       if (widget.product == null) {
@@ -59,58 +76,84 @@ class _ProductFormPageState extends State<ProductFormPage> {
     }
   }
 
+  Widget _buildField(
+    String label,
+    TextEditingController controller, {
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+        validator: validator ??
+            (value) {
+              if (value == null || value.isEmpty) {
+                return 'Preencha o campo $label';
+              }
+              return null;
+            },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.product != null;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? "Edit Product" : "Add Product"),
+        title: Text(isEditing ? 'Editar Produto' : 'Adicionar Produto'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(labelText: "Title"),
+              _buildField('Título', _titleController),
+              _buildField(
+                'Preço',
+                _priceController,
+                keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please enter a title";
+                  if (value == null || value.isEmpty) return 'Informe o preço';
+                  if (double.tryParse(value) == null) {
+                    return 'Número inválido';
                   }
                   return null;
                 },
               ),
-              TextFormField(
-                controller: _priceController,
-                decoration: const InputDecoration(labelText: "Price"),
+              _buildField('Descrição', _descriptionController, maxLines: 3),
+              _buildField('Categoria', _categoryController),
+              _buildField('URL da imagem (thumbnail)', _thumbnailController),
+              _buildField(
+                'Estoque',
+                _stockController,
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "Please enter a price";
+                    return 'Informe o estoque';
                   }
-                  if (double.tryParse(value) == null) {
-                    return "Please enter a valid number";
-                  }
+                  if (int.tryParse(value) == null) return 'Número inválido';
                   return null;
                 },
               ),
-              TextFormField(
-                controller: _imageController,
-                decoration: const InputDecoration(labelText: "Image URL"),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please enter an image URL";
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _save,
-                child: Text(isEditing ? "Update" : "Create"),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: _save,
+                  child: Text(isEditing ? 'Atualizar' : 'Criar'),
+                ),
               ),
             ],
           ),

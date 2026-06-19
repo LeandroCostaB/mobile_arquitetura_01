@@ -17,12 +17,12 @@ class ProductDetailPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Image.network(
-              product.image,
+              product.thumbnail,
               width: double.infinity,
-              height: 300,
+              height: 280,
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) => const SizedBox(
-                height: 300,
+                height: 280,
                 child: Center(child: Icon(Icons.error, size: 100)),
               ),
             ),
@@ -33,28 +33,47 @@ class ProductDetailPage extends StatelessWidget {
                 children: [
                   Text(
                     product.title,
-                    style: Theme.of(context).textTheme.headlineMedium,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    "\$${product.price.toStringAsFixed(2)}",
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    'R\$ ${product.price.toStringAsFixed(2)}',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: Colors.green,
                           fontWeight: FontWeight.bold,
                         ),
                   ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, color: Colors.amber, size: 18),
+                      const SizedBox(width: 4),
+                      Text('${product.rating}'),
+                      const SizedBox(width: 16),
+                      const Icon(Icons.inventory_2_outlined, size: 18),
+                      const SizedBox(width: 4),
+                      Text('Estoque: ${product.stock}'),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Categoria: ${product.category}',
+                    style: const TextStyle(color: Colors.grey),
+                  ),
                   const SizedBox(height: 16),
                   const Text(
-                    "Description",
+                    'Descrição',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    "This is a placeholder description for the product. The current model doesn't include a description field, but you can add it to the model and entity if needed.",
-                    style: TextStyle(fontSize: 16),
+                  Text(
+                    product.description,
+                    style: const TextStyle(fontSize: 15, height: 1.5),
                   ),
                 ],
               ),
