@@ -66,11 +66,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
 
       if (widget.product == null) {
         viewModel.addProduct(product).then((_) {
-          if (mounted) Navigator.pop(context);
+          if (mounted) Navigator.pop(context); // Navigator.pop explícito
         });
       } else {
         viewModel.updateProduct(product).then((_) {
-          if (mounted) Navigator.pop(context);
+          if (mounted) Navigator.pop(context); // Navigator.pop explícito
         });
       }
     }
@@ -111,6 +111,10 @@ class _ProductFormPageState extends State<ProductFormPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(isEditing ? 'Editar Produto' : 'Adicionar Produto'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context), // Navigator.pop explícito
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -147,13 +151,23 @@ class _ProductFormPageState extends State<ProductFormPage> {
                 },
               ),
               const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: _save,
-                  child: Text(isEditing ? 'Atualizar' : 'Criar'),
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () =>
+                          Navigator.pop(context), // Navigator.pop explícito
+                      child: const Text('Cancelar'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _save,
+                      child: Text(isEditing ? 'Atualizar' : 'Criar'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
